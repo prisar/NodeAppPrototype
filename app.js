@@ -9,12 +9,14 @@ const jwt = require('jsonwebtoken');
 const config = require('./config');
 const cors = require('cors');
 
-const { signUpValidation, loginValidation } =  require('./utility/validation');
-const {ensureToken} = require('./middleware/ensureToken');
-const {check, validationResult} = require('express-validator/check');
-const {addNewUserTemplate, addNewUser, userLoginCheck, findAllUsers, myProtectedRoute, editUser} = require('./routes/user');
-const {dashboard} = require('./routes/index');
-const {editCompanyDetails} = require('./routes/company');
+const { signUpValidation, loginValidation } = require('./utility/validation');
+const { ensureToken } = require('./middleware/ensureToken');
+const { check, validationResult } = require('express-validator/check');
+const { addNewUserTemplate, addNewUser, userLoginCheck, findAllUsers, myProtectedRoute, editUser } = require('./routes/user');
+const { dashboard } = require('./routes/index');
+const { editCompanyDetails } = require('./routes/company');
+
+const { createSitemap } = require('sitemap');
 
 var app = express();
 var port = process.env.PORT || 8000;
@@ -34,9 +36,9 @@ app.get('/', addNewUserTemplate);
 // Custom Routes for User
 app.get('/index', ensureToken, dashboard);
 app.get('/signup', addNewUserTemplate);
-app.post('/signup',signUpValidation, addNewUser);
+app.post('/signup', signUpValidation, addNewUser);
 app.post('/login', loginValidation, userLoginCheck);
-app.post('/:id/editUser',signUpValidation, editUser);
+app.post('/:id/editUser', signUpValidation, editUser);
 // app.get('/users', findAllUsers);
 // app.get('/privateRoute', ensureToken, myProtectedRoute);
 
@@ -62,6 +64,28 @@ app.use('/api/products', require('./routes/api/product'));
 
 app.use('/api/cart', require('./routes/api/cart'));
 
-app.listen(port, function() {
+const sitemap = createSitemap({
+    hostname: 'http://example.com',
+    cacheTime: 600000,        // 600 sec - cache purge period
+    urls: [
+        { url: '/page-1/', changefreq: 'daily', priority: 0.3 },
+        { url: '/page-2/', changefreq: 'monthly', priority: 0.7 },
+        { url: '/page-3/' },    // changefreq: 'weekly',  priority: 0.5
+        { url: '/page-4/', img: "http://urlTest.com" }
+    ]
+});
+
+app.get('/sitemap.xml', function (req, res) {
+    try {
+        const xml = sitemap.toXML()
+        res.header('Content-Type', 'application/xml');
+        res.send(xml);
+    } catch (e) {
+        console.error(e)
+        res.status(500).end()
+    }
+});
+
+app.listen(port, function () {
     console.log(`Express server started on port: ${port}`);
 });
