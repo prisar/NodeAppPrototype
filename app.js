@@ -18,6 +18,9 @@ const { editCompanyDetails } = require('./routes/company');
 
 const { createSitemap } = require('sitemap');
 
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+
 var app = express();
 var port = process.env.PORT || 8000;
 
@@ -98,6 +101,15 @@ app.get('/sitemap.xml', function (req, res) {
         res.status(500).end()
     }
 });
+
+
+app.post('/plogin', passport.authenticate('local'),
+    function (req, res) {
+        // If this function gets called, authentication was successful.
+        // `req.user` contains the authenticated user.
+        res.redirect('/users/' + req.user.username);
+    });
+
 
 app.listen(port, function () {
     console.log(`Express server started on port: ${port}`);
